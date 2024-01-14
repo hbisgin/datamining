@@ -1,0 +1,143 @@
+---
+title: "Getting to know your data"
+output: html_document
+#date: "2023-01-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## R examples related to some statistical descriptions
+
+
+```{r group median}
+#median
+L1=21
+freqmed=1500
+N=200+450+300+1500+700+44
+freql=200+450+300
+#+1500+700+44
+width=50-21
+mymedian=L1+ (N/2-freql)*width/freqmed
+print(mymedian)
+```
+
+```{r normal distn}
+#normal distn
+x=0
+sigma=1
+mu=0
+p=(1/(sigma*sqrt(2*pi)))*exp(-0.5*((x-mu)/sigma)^2)
+print(p)
+dnorm(x)
+```
+
+```{r boxplot}
+#boxplot
+diabetes = read.delim('/Users/bisgin/Library/CloudStorage/GoogleDrive-bisgin@umich.edu/My Drive/DATA/diabetes_train.csv', sep = ',', header=T)
+boxplot(diabetes$plas)
+hist(diabetes$plas)
+```
+
+```{r density}
+#density
+#setwd('/Users/bisgin/Library/CloudStorage/GoogleDrive-bisgin@umich.edu/My Drive/DATA/')
+d<-density(diabetes$age)
+plot(d, main="age distn")
+```
+QQ plot
+
+```{r }
+set.seed(183)
+# Normally distributed numbers
+x <- rnorm(80, mean=50, sd=5)
+# Uniformly distributed numbers
+z <- runif(80)
+qqplot(x,z)
+```
+
+Longer route
+```{r long route}
+n = max(length(x), length(z))
+p = (1:n - 1)/(n - 1)
+qx = quantile(x, p)
+qz = quantile(z, p)
+plot(qx,qz)
+```
+
+```{r Compare two distributions}
+qqplot(x,z)
+
+```
+
+Compare the numbers sampled with rnorm() against normal distribution
+```{r}
+qqnorm(x)
+qqline(x)
+```
+
+The same numbers to the 4th power, compared to the normal distribution
+
+```{r}
+qqnorm(x^4)
+qqline(x^4)
+```
+
+Numbers sampled from the flat distribution, compared to normal
+```{r}
+qqnorm(z)
+qqline(z)
+```
+
+ggplot examples
+```{r}
+pairs(diabetes[,1:4]) #you can add more to see all pairs
+p<-ggplot(diabetes, aes(x=age, y=mass)) + geom_point()
+show(p)
+```
+
+```{r}
+q<-ggplot(diabetes, aes(x=age, y=mass)) + geom_point(aes(colour=class)) + facet_grid(class~.)
+show(q)
+```
+
+```{r}
+p<-ggplot(diabetes, aes(x=age, y=mass)) + geom_point()
+show(p)
+```
+
+```{r}
+library(lattice)
+parallelplot(~iris[1:4] | Species, data = iris)
+```
+
+minkowski distance, as h->infinity, what happens?
+
+```{r}
+x=c(1,1,3)
+y=c(0,2,6)
+for (h in 1:100)
+{
+  d=(sum(abs(x[1]-y[1])^h + abs(x[2]-y[2])^h + abs(x[3]-y[3])^h))^(1/h)
+  print(d)
+}
+```
+
+
+pairs examples
+```{r pairs}
+pairs(diabetes[, -9])
+
+```

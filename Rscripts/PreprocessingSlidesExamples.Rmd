@@ -1,0 +1,138 @@
+---
+title: "DataPreprocessingSlidesExamples"
+output: html_document
+date: "2024-01-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+## Principal Component Analysis Example
+
+Using iris data set to obtain the principal components to present the data in another space
+
+```{r PCA Example}
+# Load the iris dataset
+data(iris)
+
+# Standardize the data (optional but recommended for PCA)
+scaled_data <- scale(iris[, 1:4])
+
+# Perform PCA
+pca_result <- prcomp(scaled_data)
+
+# Summary of PCA results
+summary(pca_result)
+
+# Visualize the proportion of variance explained by each principal component
+var_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+cumulative_var <- cumsum(var_explained)
+
+# Plot the variance explained
+variance_df <- data.frame(PrincipalComponent = 1:length(var_explained), 
+                          VarianceExplained = var_explained,
+                          CumulativeVariance = cumulative_var)
+
+ggplot(variance_df, aes(x = PrincipalComponent, y = VarianceExplained)) +
+  geom_bar(stat = "identity", fill = "skyblue", alpha = 0.7) +
+  geom_line(aes(x = PrincipalComponent, y = CumulativeVariance, group = 1), color = "red") +
+  labs(title = "Variance Explained by Principal Components",
+       x = "Principal Component",
+       y = "Variance Explained") +
+  theme_minimal()
+
+# Visualize the data in the reduced space (first two principal components)
+pca_data <- as.data.frame(pca_result$x[, 1:2])
+pca_data$Species <- iris$Species
+
+ggplot(pca_data, aes(x = PC1, y = PC2, color = Species)) +
+  geom_point(size = 3) +
+  labs(title = "PCA: Projection of Data onto First Two Principal Components",
+       x = "Principal Component 1",
+       y = "Principal Component 2") +
+  theme_minimal()
+```
+
+```{r}
+# Extract loadings
+loadings <- pca_result$rotation
+
+# Print the loadings
+print(loadings)
+```
+The loadings matrix will show how each original variable contributes to each principal component. Each column of the loadings matrix corresponds to a principal component, and each row corresponds to an original variable.
+
+
+To express the original variables in terms of principal components, you can use the following formula:
+
+\[ X_{\text{original}} = Z \times \text{Loadings} \]
+
+where:
+
+- \( X_{\text{original}} \) is the original data matrix.
+- \( Z \) is the matrix of principal components obtained from the PCA.
+- \(\text{Loadings}\) is the matrix of loadings obtained from the PCA.
+
+Here's an example using the first two principal components:
+
+```{r}
+# Extract the first two principal components
+pc_scores <- pca_result$x[, 1:2]
+
+# Express original variables in terms of principal components
+original_variables <- pc_scores %*% t(loadings[, 1:2])
+
+# Print the original variables reconstructed from the first two principal components
+print(head(original_variables))
+```
+
+# Let's check mtcars data set for a quick visualization
+
+```{r}
+# Load the mtcars dataset
+data(mtcars)
+ggplot(data=mtcars, aes(x=hp, y=mpg)) + geom_point() + geom_smooth(method = lm)
+```
+
+Note that ggplot and *lm* might be fitting different linear models. 
+
+```{r linear regression example}
+# Load the mtcars dataset
+data(mtcars)
+
+# Fit a multiple linear regression model
+model <- lm(mpg ~ hp, data = mtcars)
+
+# Extract coefficients
+coefficients <- coef(model)
+
+# Create a scatter plot
+ggplot(data = mtcars, aes(x = hp, y = mpg)) +
+  geom_point() +
+  geom_abline(intercept = coefficients[1], slope = coefficients[2], color = "red") +
+  labs(title = "Scatter Plot with Regression Line")
+
+```
+
+Let's perform a multi-linear regression model to see the effect of hp and weight to mpg.
+```{r multi-linear regression model}
+# Load the mtcars dataset
+data(mtcars)
+
+# Fit a multiple linear regression model
+model <- lm(mpg ~ hp + wt, data = mtcars)
+
+# Extract coefficients
+coefficients <- coef(model)
+
+# Create a scatter plot
+library(ggplot2)
+ggplot(data = mtcars, aes(x = hp, y = mpg)) +
+  geom_point() +
+  geom_abline(intercept = coefficients[1], slope = coefficients[2], color = "red") +
+  labs(title = "Scatter Plot with Regression Line")
+
+
+```

@@ -136,3 +136,15 @@ ggplot(data = mtcars, aes(x = hp, y = mpg)) +
 
 
 ```
+
+
+```{r multiple groups}
+
+
+# Scatter plot with regression lines for each vehicle class
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) + 
+  geom_point(alpha = 0.5) +   # Add points with transparency
+  geom_smooth(method = "lm", se = TRUE) +  # Linear regression with CI
+  theme_minimal()
+
+```

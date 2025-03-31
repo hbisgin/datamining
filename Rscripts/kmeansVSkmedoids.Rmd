@@ -1,0 +1,89 @@
+---
+title: "K-Means and K-Medoids Clustering on Simulated Data"
+author: "Halil Bisgin"
+output: html_document
+---
+
+## Introduction
+
+In this analysis, we simulate data to apply both **K-Means** and **K-Medoids** clustering algorithms, compare their results, and visualize the clustering outcomes.
+
+We also measure the time taken for each clustering method.
+
+## Load Required Libraries
+
+```{r setup, message=FALSE, warning=FALSE}
+# Install libraries if not already installed
+# install.packages("cluster")
+# install.packages("factoextra")
+# install.packages("ggplot2")
+# install.packages("tictoc")
+
+# Load necessary libraries
+library(cluster)      # For K-Medoids (PAM)
+library(factoextra)   # For visualization
+library(ggplot2)      # For plotting
+library(tictoc)       # For measuring execution time
+```
+
+```{r data prep}
+# Set random seed for reproducibility
+set.seed(42)
+
+# Create 3 clusters with normal distribution
+n <- 300  # Total number of data points
+cluster1 <- data.frame(x = rnorm(n/3, mean = 2, sd = 0.5), y = rnorm(n/3, mean = 2, sd = 0.5))
+cluster2 <- data.frame(x = rnorm(n/3, mean = 6, sd = 0.5), y = rnorm(n/3, mean = 6, sd = 0.5))
+cluster3 <- data.frame(x = rnorm(n/3, mean = 10, sd = 0.5), y = rnorm(n/3, mean = 2, sd = 0.5))
+
+# Combine clusters into one dataset
+data <- rbind(cluster1, cluster2, cluster3)
+colnames(data) <- c("feature1", "feature2")
+
+# Normalize the data
+scaled_data <- scale(data)
+
+```
+# Apply K-Means Clustering
+
+```{r k-means}
+tic("K-Means")  # Start timer
+kmeans_result <- kmeans(scaled_data, centers = 3, nstart = 10)
+toc()  # Stop timer
+```
+
+# Apply K-Medoids Clustering
+```{r k-medoids}
+tic("K-Medoids")  # Start timer
+kmedoids_result <- pam(scaled_data, 3)
+toc()  # Stop timer
+
+```
+
+# Prep data for visualization
+```{r get memberships }
+data$KMeans_Cluster <- as.factor(kmeans_result$cluster)
+data$KMedoids_Cluster <- as.factor(kmedoids_result$clustering)
+```
+
+# Plotting k-means clusters
+```{r vis kmeans}
+p1 <- ggplot(data, aes(x = feature1, y = feature2, color = KMeans_Cluster)) +
+  geom_point(size = 3) +
+  ggtitle("K-Means Clustering") +
+  theme_minimal()
+
+# Print the K-Means plot
+print(p1)
+```
+
+# Plotting k-medoids clusters
+```{r kmedoids}
+p2 <- ggplot(data, aes(x = feature1, y = feature2, color = KMedoids_Cluster)) +
+  geom_point(size = 3) +
+  ggtitle("K-Medoids Clustering") +
+  theme_minimal()
+
+# Print the K-Medoids plot
+print(p2)
+```

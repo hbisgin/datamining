@@ -22,3 +22,10 @@ pheatmap(data_matrix,
          main = "Hierarchical Clustering with Heatmap")
 
 #let's experiment with real data
+gene_counts = read.csv(file='/Users/bisgin/bisgin@umich.edu - Google Drive/My Drive/DATA/log_top_counts_nash.csv', sep=',', header = TRUE, row.names = 1)
+head(gene_counts)
+
+pheatmap(gene_counts, 
+         clustering_distance_rows = "euclidean", 
+         clustering_method = "complete",
+         main = "Hierarchical Clustering with Heatmap")

@@ -1,0 +1,42 @@
+---
+title: "one-hot code"
+output: html_document
+date: "2025-09-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+title: "One-Hot Encoding in R"
+output: html_document
+---
+
+## One-Hot Encoding Demo
+
+```{r}
+# Create Example Data
+df <- data.frame(
+  id = 1:5,
+  color = c("red", "blue", "green", "red", "blue")
+)
+
+head(df)
+
+# One-Hot Encoding with Base R
+one_hot <- model.matrix(~ color - 1, data = df)
+
+one_hot
+```
+
+```{r}
+
+# One-Hot Encoding with fastDummies
+if (!require("fastDummies")) install.packages("fastDummies")
+library(fastDummies)
+df_onehot <- dummy_cols(df, select_columns = "color")
+
+df_onehot
+
+```

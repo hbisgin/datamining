@@ -124,3 +124,39 @@ arrests<-plot(prcomp(USArrests, scale. = TRUE))
 
 ```
 
+```{r iris before PCA}
+#before PCA
+iris_before_pca<-ggplot(data=iris, aes(x=iris[, 1], y=iris[,2], color=Species)) + geom_point() + theme(legend.title = element_blank())
+show(iris_before_pca)
+
+```
+
+
+```{iris after PCA}
+irispca = princomp(iris[, 1:4])
+
+irispca_df = as.data.frame(irispca$scores)
+
+#after PCA
+iris_after_pca<-ggplot(data=irispca_df, aes(x=irispca_df[,1], y=irispca_df[, 2], color=iris$Species) ) + geom_point() +
+  xlab("PCA1") + ylab("PCA2") + theme(legend.title = element_blank())
+show(iris_after_pca)
+```
+
+```{r iris biplot}
+
+biplot(irispca, scale=0)
+```
+
+```{r iris reconstruction}
+
+#earlier Z=X.W
+#after pca X=Z.W^T
+
+# Perform PCA
+pca_result <- prcomp(iris[, 1:4], center=FALSE, scale=FALSE)
+
+# Restore the approximated data matrix (without centering/scaling)
+approx_data <- pca_result$x %*% t(pca_result$rotation)
+head(approx_data)
+```

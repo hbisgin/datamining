@@ -1,0 +1,126 @@
+---
+title: "PCA Derivation with Matrix Operations"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tinytex)
+#tinytex::install_tinytex(force = TRUE)  # Will use its own up-to-date packages
+library(ggplot2)
+library(dplyr)
+```
+
+## 1. Data setup
+
+Let our dataset be a matrix:
+
+\[
+X \in \mathbb{R}^{n \times d}
+\]
+
+where:
+- \(n\) = number of samples (rows),
+- \(d\) = number of features (columns).
+
+We first **center** the data:
+
+\[
+\tilde{X} = X - \mathbf{1}\mu^\top
+\]
+
+where \(\mu\) is the column mean vector and \(\mathbf{1}\) is an \(n\)-dimensional column of ones.
+
+---
+
+## 2. Covariance matrix
+
+\[
+\Sigma = \frac{1}{n} \tilde{X}^\top \tilde{X} \quad \in \mathbb{R}^{d \times d}
+\]
+
+---
+
+## 3. Eigen decomposition
+
+Solve:
+
+\[
+\Sigma v_i = \lambda_i v_i
+\]
+
+Collect the top \(k\) eigenvectors into the matrix:
+
+\[
+W = [v_1, v_2, \dots, v_k] \quad \in \mathbb{R}^{d \times k}
+\]
+
+- Columns of \(W\) are **orthonormal eigenvectors**.
+- \(\lambda_i\) are the variances explained.
+
+---
+
+## 4. Projection (scores)
+
+The **PCA scores** (projected data) are:
+
+\[
+Z = \tilde{X} W \quad \in \mathbb{R}^{n \times k}
+\]
+
+Each row of \(Z\) gives the coordinates of the data in the new \(k\)-dimensional PC space.
+
+---
+
+## 5. Reconstruction
+
+We can approximately reconstruct the original data (in centered form) by projecting back:
+
+\[
+\hat{X} = Z W^\top = \tilde{X} W W^\top
+\]
+
+If \(k = d\), then \(W\) is square and orthogonal, and:
+
+\[
+\hat{X} = \tilde{X}
+\]
+
+If \(k < d\), then \(\hat{X}\) is the **rank-\(k\) approximation** of the original data.
+
+---
+
+## 6. Properties
+
+1. **Orthogonality**:
+   \[
+   W^\top W = I_k
+   \]
+
+2. **Explained variance**:
+   \[
+   \text{Var}(Z_j) = \lambda_j
+   \]
+
+3. **Uncorrelated scores**:
+   \[
+   \text{Cov}(Z) = \Lambda_k
+   \]
+
+where \(\Lambda_k = \text{diag}(\lambda_1, \dots, \lambda_k)\).
+
+---
+
+```{r US arrests PCA}
+
+mu = colMeans(USArrests)
+USArrestspca = prcomp(USArrests)
+
+nComp = 4
+USArrestshat = USArrestspca$x[,1:nComp] %*% t(USArrestspca$rotation[,1:nComp])
+USArrestshat = scale(USArrestshat, center = -mu, scale = FALSE)
+
+arrests<-plot(prcomp(USArrests, scale. = TRUE))
+
+```
+

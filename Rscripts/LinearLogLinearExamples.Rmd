@@ -1,0 +1,192 @@
+---
+title: "Linear and Log-linear Regression Examples"
+author: "Halil Bisgin"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Linear Regression
+
+We model a continuous outcome (`mpg`) as a linear function of `hp` (horsepower) using the **mtcars** dataset.
+
+The mathematical form of the linear regression is:  
+
+\[
+y_i = \beta_0 + \beta_1 x_i + \epsilon_i, \quad \epsilon_i \sim N(0, \sigma^2)
+\]
+
+where  
+- \(y_i\) = response (miles per gallon)  
+- \(x_i\) = predictor (horsepower)  
+- \(\beta_0, \beta_1\) = coefficients  
+
+```{r linear-regression, message=FALSE, warning=FALSE}
+# Load dataset
+data(mtcars)
+
+# Fit a linear regression model
+lm_model <- lm(mpg ~ hp, data = mtcars)
+
+# Model summary
+summary(lm_model)
+
+# Predictions for new horsepower values
+new_data <- data.frame(hp = c(100, 150, 200))
+predictions <- predict(lm_model, new_data, interval = "confidence")
+predictions
+
+# Plot data with regression line
+plot(mtcars$hp, mtcars$mpg, 
+     pch = 19, col = "blue", 
+     xlab = "Horsepower", ylab = "Miles per Gallon",
+     main = "Linear Regression: mpg ~ hp")
+abline(lm_model, col = "red", lwd = 2)
+
+```
+
+# Multiple Linear Regression
+
+```{r Multiple}
+# Fit a multiple regression model
+lm_multi <- lm(mpg ~ hp + wt, data = mtcars)
+
+# Model summary
+summary(lm_multi)
+
+# Predictions for new combinations of hp and wt
+new_multi <- data.frame(hp = c(100, 150, 200),
+                        wt = c(2.5, 3.0, 3.5))
+predict(lm_multi, new_multi, interval = "confidence")
+
+# Visualize effect of hp on mpg for a fixed weight
+library(ggplot2)
+ggplot(mtcars, aes(x = hp, y = mpg, color = wt)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", formula = y ~ x + wt, se = FALSE) +
+  labs(title = "Multiple Regression: mpg ~ hp + wt")
+
+
+
+
+
+```
+
+# LogLinear Regression
+
+
+## Poisson Distribution and Sampling
+
+The Poisson distribution is used to model **count data**.  
+A random variable \( Y \sim \text{Poisson}(\lambda) \) can only take **nonnegative integer values**:
+
+\[
+Y \in \{0, 1, 2, 3, \ldots\}
+\]
+
+The probability mass function is:
+
+\[
+P(Y = k) = \frac{\lambda^k e^{-\lambda}}{k!}, \quad k = 0, 1, 2, \ldots
+\]
+
+Here, \( \lambda \) is both the **mean** and the **variance** of the distribution.
+
+---
+
+### Sampling in R
+
+In R, we can generate Poisson-distributed random variables with `rpois()`.  
+For example:
+
+```{r}
+set.seed(123)
+rpois(10, lambda = 3)
+```
+
+The model is given by $\log(\mu_i) = \beta_0 + \beta_1 x_i$.
+
+
+```{r LogLinear }
+
+cat("Equation: log(μ_i) = β0 + β1 * x_i  (Poisson log-linear model)")
+
+# Simulate count data
+set.seed(123)
+income <- runif(50, 20, 100)  # income between 20k–100k
+purchases <- rpois(50, lambda = exp(0.05 * income - 2))# -2 and 0.05 are the real coefficients
+#rpois is for random sampling for 50 numbers 
+#please note that lambda is mean of Poisson distribution
+
+data <- data.frame(income, purchases)
+
+# Fit log-linear (Poisson regression) model
+glm_model <- glm(purchases ~ income, data = data, family = poisson(link = "log"))
+
+# Model summary
+summary(glm_model)
+
+# Predictions for new income values
+new_income <- data.frame(income = c(30, 60, 90))
+pred_counts <- predict(glm_model, new_income, type = "response")
+pred_counts
+
+# Plot observed vs fitted curve
+plot(data$income, data$purchases, 
+     pch = 19, col = "darkgreen",
+     xlab = "Income (k)", ylab = "Purchases",
+     main = "Log-linear Regression: Purchases ~ Income")
+
+curve(predict(glm_model, newdata = data.frame(income = x), type = "response"), 
+      add = TRUE, col = "red", lwd = 2)
+```
+
+```{r Example: log-transform mpg}
+cat("Equation: log(Y_i) = β0 + β1 * x_i + ε_i   (Log-transformed linear model)")
+
+lm_log <- lm(log(mpg) ~ hp, data = mtcars)
+summary(lm_log)
+
+new_data <- data.frame(hp = c(100, 150, 200))
+pred_log <- predict(lm_log, new_data, interval = "confidence")
+exp(pred_log)  # back-transform to original scale
+
+plot(mtcars$hp, log(mtcars$mpg),
+     pch = 19, col = "purple",
+     xlab = "Horsepower", ylab = "log(Miles per Gallon)",
+     main = "Log-Transformed Linear Regression: log(mpg) ~ hp")
+
+abline(lm_log, col = "red", lwd = 2)
+```
+
+
+### Comparing `lm(log(mpg))` and `glm(log link)`
+
+```{r}
+# Load mtcars dataset
+data(mtcars)
+
+# 1. Linear regression on log(mpg)
+lm_log <- lm(log(mpg) ~ hp, data = mtcars)
+
+# Predictions (back-transform to mpg scale)
+hp_grid <- seq(min(mtcars$hp), max(mtcars$hp), length.out = 200)
+pred_lm_log <- exp(predict(lm_log, newdata = data.frame(hp = hp_grid)))
+
+# 2. GLM with Gaussian family and log link
+glm_log <- glm(mpg ~ hp, data = mtcars, family = gaussian(link = "log"))
+pred_glm_log <- predict(glm_log, newdata = data.frame(hp = hp_grid), type = "response")
+
+# Plot observed vs fitted curves
+plot(mtcars$hp, mtcars$mpg,
+     pch = 19, col = "darkgreen",
+     xlab = "Horsepower (hp)", ylab = "Miles per gallon (mpg)",
+     main = "Comparison: lm(log(mpg)) vs glm(log link)")
+
+lines(hp_grid, pred_lm_log, col = "blue", lwd = 2)
+lines(hp_grid, pred_glm_log, col = "red", lwd = 2, lty = 2)
+
+legend("topright", legend = c("Observed data",
+                              "lm(log(mpg)) → exp(pred)",
+                              "glm(mpg, log link)"),
+       col = c("darkgreen", "blue", "red"),
+       pch = c(19, NA, NA), lty = c(NA, 1, 2), lwd = c(NA, 2, 2))

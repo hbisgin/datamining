@@ -1,0 +1,162 @@
+---
+title: "Data Normalization and Discretization in R"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Load libraries
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+# Use mpg from mtcars dataset
+data <- mtcars$mpg
+summary(data)
+
+# Original boxplot
+boxplot(data, main = "Original Data (mpg)", col = "lightblue")
+```
+
+```{r}
+z_score <- scale(data)
+
+boxplot(z_score, main = "Z-Score Normalization", col = "lightgreen")
+
+```
+
+
+
+```{r}
+library(ggplot2)
+library(tidyr)
+su = read.delim("/Users/bisgin/Library/CloudStorage/GoogleDrive-bisgin@umich.edu/My Drive/DATA/SuTable.txt", header = T, sep="\t", row.names = 1)
+head(su)
+
+su_zscore = as.data.frame(scale(su))
+
+
+head(su_zscore)
+
+
+
+# Reshape to long format
+df_long <- pivot_longer(su, cols = everything(),
+                        names_to = "Variable", values_to = "Value")
+
+# Plot
+ggplot(df_long, aes(x = Variable, y = Value, fill = Variable)) +
+  geom_boxplot() +
+  ggtitle("Boxplots of Multiple Variables")
+
+
+boxplot(su)
+
+############ after normalization
+df_zscore <- pivot_longer(su_zscore, cols = everything(),
+                        names_to = "Variable", values_to = "Value")
+
+ggplot(df_zscore, aes(x = Variable, y = Value, fill = Variable)) +
+  geom_boxplot() +
+  ggtitle("Boxplots of Multiple Variables")
+
+
+boxplot(su_zscore)
+
+
+
+```
+
+```{r}
+library(ggplot2)
+#this is NGS data and it require more specialized normalization. However, I'm showing this for illustration purposes.
+
+ggplot(su, aes(x = Brain_1.CEL)) +
+  geom_density(fill = "skyblue", alpha = 0.5, color = "blue") +
+  labs(
+    title = "Density Curve of my_column",
+    x = "Values",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+ggplot(su, aes(x = log(Brain_1.CEL))) +
+  geom_density(fill = "skyblue", alpha = 0.5, color = "blue") +
+  labs(
+    title = "Density Curve of my_column",
+    x = "Values",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+
+```
+
+
+```{r}
+min_max <- (data - min(data)) / (max(data) - min(data))
+
+boxplot(min_max, main = "Min-Max Normalization [0,1]", col = "lightpink")
+
+```
+
+```{r}
+# Equal-width binning into 3 groups
+equal_width <- cut(data, breaks = 3, labels = c("Low", "Medium", "High"))
+
+# Equal-frequency binning into 3 groups
+equal_freq <- cut(data, 
+                  breaks = quantile(data, probs = seq(0, 1, length.out = 4)), 
+                  include.lowest = TRUE, 
+                  labels = c("Low", "Medium", "High"))
+
+# Show counts per bin
+table(equal_width)
+table(equal_freq)
+```
+
+
+```{r}
+
+df <- data.frame(mpg = data, EqualWidth = equal_width, EqualFreq = equal_freq)
+
+# Equal-width boxplot
+ggplot(df, aes(x = EqualWidth, y = mpg, fill = EqualWidth)) +
+  geom_boxplot() +
+  ggtitle("Discretization: Equal-Width Binning")
+
+# Equal-frequency boxplot
+ggplot(df, aes(x = EqualFreq, y = mpg, fill = EqualFreq)) +
+  geom_boxplot() +
+  ggtitle("Discretization: Equal-Frequency Binning")
+
+
+```
+
+
+```{r}
+
+
+# Load required package
+library(ggplot2)
+
+# Generate data
+x <- seq(-4, 4, length=1000)
+y <- dnorm(x, mean=0, sd=1)
+df <- data.frame(x, y)
+
+# Plot with ggplot2
+ggplot(df, aes(x, y)) +
+  geom_line(linewidth=1, color="blue") +
+  labs(
+    title = "Standard Normal Distribution (Z ~ N(0,1))",
+    x = "z",
+    y = "Probability Density"
+  ) +
+  theme_minimal()
+
+
+
+
+```
